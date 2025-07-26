@@ -1,27 +1,34 @@
-// index.js
-const express = require("express");
-const dotenv = require("dotenv");
-const connectDB = require("./DBConnection");
+/**
+ * Server Entry Point
+ *
+ * This file starts the HTTP server by importing the configured Express app
+ * and calling app.listen(). The app configuration is separated into app.js
+ * to allow testing without starting the actual server.
+ */
 
-const authRoutes = require("./routes/authRoute");
-const errorHandler = require("./middlewares/errorHandler");
-// Load environment variables
-dotenv.config();
+const app = require("./app");
 
-// Create express app
-const app = express();
-
-// Connect to MongoDB
-connectDB();
-
-// Routes
-app.use(express.json()); // Middleware to parse JSON requests
-app.use("/api/auth", authRoutes);
-
-// Error handling middleware'
-app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(
+    `📚 API Documentation available at http://localhost:${PORT}/api-docs`
+  );
+});
+
+// Graceful shutdown handling
+process.on("SIGTERM", () => {
+  console.log("🔥 SIGTERM received, shutting down gracefully");
+  server.close(() => {
+    console.log("💀 Process terminated");
+  });
+});
+
+process.on("SIGINT", () => {
+  console.log("🔥 SIGINT received, shutting down gracefully");
+  server.close(() => {
+    console.log("💀 Process terminated");
+  });
 });

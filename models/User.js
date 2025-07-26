@@ -12,12 +12,17 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function () {
+      return !this.google; // فقط مطلوب لو مش مستخدم Google
+    },
+  },
+  google: {
+    type: Boolean,
+    default: false,
   },
   role: {
     type: String,
-    enum: ["admin", "doctor", "patient", "staff"],
-    default: "patient",
+    enum: ["admin", "doctor", "staff"],
   },
   createdAt: {
     type: Date,

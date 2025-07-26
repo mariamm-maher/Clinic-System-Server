@@ -4,7 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest 'tests/unit test'",
+    "test:integration": "jest 'tests/integrated test'",
+    "test:silent": "jest --silent",
+    "test:verbose": "jest --verbose"
   },
   "repository": {
     "type": "git",
@@ -19,12 +27,26 @@
   },
   "homepage": "https://github.com/mariamm-maher/Clinic-System-Server#readme",
   "dependencies": {
+    "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
+    "glob": "^11.0.3",
+    "jest": "^30.0.5",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.4"
+    "mongoose": "^8.16.4",
+    "nodemailer": "^7.0.5",
+    "supertest": "^7.1.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.0",
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.10"
   }
 }

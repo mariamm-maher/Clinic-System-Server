@@ -1,10 +1,14 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const createError = require("../util/createError");
+const sendSuccess = require("../util/sendSucess");
 const {
   registerSchema,
 } = require("../util/validations/RegistrationValidation");
 const { generateAccessToken, generateRefreshToken } = require("../util/token");
+const getTokensFromGoogle = require("../util/googleToken");
+
 const Register = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
@@ -40,7 +44,9 @@ const Register = async (req, res, next) => {
 
     await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    sendSuccess(res, 201, "User registered successfully", {
+      data: { userId: newUser._id, name: newUser.name, email: newUser.email },
+    });
   } catch (err) {
     next(
       createError("Registration failed", 500, {
@@ -51,20 +57,8 @@ const Register = async (req, res, next) => {
   }
 };
 
-// const login = async (req, res, next) => {
-//   // take the inputs
-//   //validate the inputs  --> not needed as we already have a schema
-//   //check if the user exists
-//   //check if the password is correct
-//   //generate the access token and refresh token
-//   // send the access token in the response
-//   //send the refresh token in the cookies
-// };
-
 const login = async (req, res, next) => {
-  // 1️⃣ استلام البيانات من الـ body
   const { email, password } = req.body;
-  // 3️⃣ التحقق إن المستخدم موجود
   const user = await User.findOne({ email });
   if (!user) {
     return next(
@@ -74,8 +68,6 @@ const login = async (req, res, next) => {
       })
     );
   }
-
-  // 4️⃣ التحقق من كلمة السر (مع المقارنة باستخدام bcrypt)
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return next(
@@ -85,50 +77,74 @@ const login = async (req, res, next) => {
       })
     );
   }
-
-  // 5️⃣ توليد Access Token و Refresh Token
   const accessToken = generateAccessToken(user._id, user.role);
   const refreshToken = generateRefreshToken(user._id, user.role);
-
-  // 6️⃣ حفظ الـ Refresh Token في الكوكيز (Secure + HttpOnly)
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // https فقط في production
     sameSite: "Strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // مثلاً 7 أيام
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   });
-
-  // 7️⃣ إرسال الـ Access Token في الـ response
-  res.status(200).json({
-    message: "Login successful",
-    accessToken,
-    user: {
-      id: user._id,
-      role: user.role,
-      name: user.name,
-    },
+  sendSuccess(res, 200, "Login successful", {
+    data: { accessToken, userId: user._id, name: user.name, role: user.role },
   });
 };
 
-const refreshToken = (req, res) => {
+const refreshToken = (req, res, next) => {
   const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) return next(createError("Refresh token is required", 401));
+  jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+    if (err)
+      return next(
+        createError(
+          "Refresh token is expired , your session is ended , login again !",
+          403
+        )
+      );
+    const newAccessToken = generateAccessToken(decoded.id, decoded.role);
 
-  if (!refreshToken) return res.sendStatus(401);
-
-  jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
-    if (err) return res.sendStatus(403); // Token expired or invalid
-
-    const newAccessToken = jwt.sign(
-      { userId: decoded.userId },
-      process.env.ACCESS_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    res.json({ accessToken: newAccessToken });
+    sendSuccess(res, 200, "Token refreshed successfully", {
+      data: { accessToken: newAccessToken },
+    });
   });
 };
+
+const googleCallback = async (req, res, next) => {
+  const code = req.query.code;
+  const googlRes = await getTokensFromGoogle(code);
+  const user = jwt.decode(googlRes.id_token);
+  const existingUser = await User.findOne({ email: user.email });
+  let finalUser;
+  if (!existingUser) {
+    const newUser = new User({
+      name: user.name,
+      email: user.email,
+      role: "doctor",
+      google: true, // نعلم إنه جاي من Google
+      // password: null, // أو سيبها مش موجودة
+    });
+    finalUser = await newUser.save();
+  } else {
+    finalUser = existingUser;
+  }
+
+  const accessToken = generateAccessToken(finalUser._id, finalUser.role);
+  const refreshToken = generateRefreshToken(finalUser._id, finalUser.role);
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // https فقط في production
+    sameSite: "Strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+  res.redirect(
+    `http://localhost:5173/patients?accessToken=${accessToken}&name=${user.name}&id=${user._id}&role=${user.role}`
+  );
+};
+
 module.exports = {
   Register,
   refreshToken,
   login,
+  googleCallback,
 };

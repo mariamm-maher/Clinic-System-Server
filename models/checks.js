@@ -1,0 +1,113 @@
+const mongoose = require("mongoose");
+
+const ChecksSchema = new mongoose.Schema({
+  general: {
+    fever: Boolean,
+    weightLoss: Boolean,
+    fatigue: Boolean,
+    nightSweats: Boolean,
+    appetiteChange: Boolean,
+    weakness: Boolean,
+  },
+  cardiovascular: {
+    chestPain: Boolean,
+    palpitations: Boolean,
+    shortnessOfBreath: Boolean,
+    orthopnea: Boolean,
+    paroxysmalNocturnalDyspnea: Boolean,
+    legSwelling: Boolean,
+  },
+  respiratory: {
+    cough: Boolean,
+    sputum: Boolean,
+    hemoptysis: Boolean,
+    wheezing: Boolean,
+    shortnessOfBreath: Boolean,
+    chestTightness: Boolean,
+  },
+  gastrointestinal: {
+    nausea: Boolean,
+    vomiting: Boolean,
+    diarrhea: Boolean,
+    constipation: Boolean,
+    abdominalPain: Boolean,
+    bloating: Boolean,
+    heartburn: Boolean,
+    difficultySwallowing: Boolean,
+    rectalBleeding: Boolean,
+  },
+  genitourinary: {
+    dysuria: Boolean,
+    urinaryFrequency: Boolean,
+    urgency: Boolean,
+    incontinence: Boolean,
+    hematuria: Boolean,
+    flankPain: Boolean,
+  },
+  reproductive: {
+    menstrualIrregularities: Boolean,
+    pelvicPain: Boolean,
+    vaginalDischarge: Boolean,
+    erectileDysfunction: Boolean,
+    libidoChanges: Boolean,
+  },
+  musculoskeletal: {
+    jointPain: Boolean,
+    jointSwelling: Boolean,
+    backPain: Boolean,
+    muscleCramps: Boolean,
+    stiffness: Boolean,
+    limitedMobility: Boolean,
+  },
+  neurological: {
+    headache: Boolean,
+    dizziness: Boolean,
+    syncope: Boolean,
+    seizures: Boolean,
+    numbness: Boolean,
+    tingling: Boolean,
+    weakness: Boolean,
+    tremors: Boolean,
+    memoryIssues: Boolean,
+  },
+  endocrine: {
+    heatIntolerance: Boolean,
+    coldIntolerance: Boolean,
+    excessiveThirst: Boolean,
+    excessiveUrination: Boolean,
+    weightGain: Boolean,
+    weightLoss: Boolean,
+    hairLoss: Boolean,
+  },
+  dermatological: {
+    rashes: Boolean,
+    itching: Boolean,
+    dryness: Boolean,
+    hairLoss: Boolean,
+    skinColorChanges: Boolean,
+    lesions: Boolean,
+  },
+  psychiatric: {
+    anxiety: Boolean,
+    depression: Boolean,
+    insomnia: Boolean,
+    moodSwings: Boolean,
+    hallucinations: Boolean,
+    suicidalThoughts: Boolean,
+  },
+  hematological: {
+    easyBruising: Boolean,
+    prolongedBleeding: Boolean,
+    anemiaSymptoms: Boolean, // e.g., pallor, fatigue
+  },
+  allergyImmunology: {
+    nasalCongestion: Boolean,
+    sneezing: Boolean,
+    seasonalAllergies: Boolean,
+    foodAllergies: Boolean,
+    drugAllergies: Boolean,
+  },
+  otherNotes: String, // Any other relevant checks
+});
+
+module.exports = mongoose.model("Checks", ChecksSchema);
